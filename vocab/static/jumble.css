@@ -10,6 +10,11 @@
  * like text color, italics, etc. 
  */
 
+.invis {
+    visibility: hidden;
+}
+
 .message { 
     color: red;
 }
+

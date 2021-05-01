@@ -82,8 +82,8 @@
             </div>
          </div>
          <br />
-         <!-- TODO: hide if session.matches|length is not equalto 0 -->
-         <h2>You found </h2>
+         <!-- TODO: hide if session.matches|length is equalto 0 -->
+         <h2 class="invis">You found </h2>
          <p id="results"></p>
          <p class="message"></p>
 
@@ -95,15 +95,14 @@
 
             $("#attempt").keyup(function(event) {
             var txt = $("#attempt").val();  // Current content of the input field
-            console.log("txt:", txt);
-            //var keycode = event.which;      // They key that just went up
-            //var letter = String.fromCharCode(keycode); 
+            // console.log("txt:", txt);
 
                $.getJSON( "/_check", { text: txt },
                   function(data) {
                      // if status is 1, a new match was found; otherwise it's 0
                      if(data.status == 1){ // it's a new match
-                        console.log("found new match");
+                        // console.log("found new match");
+                        $(".invis").css("visibility", "visible")
                         $("#results").append(txt + '\t');
                         $("#attempt").val("");
                         $(".message").html("");
@@ -121,7 +120,7 @@
                         }
                      }
                      else{ // show message from lack of success
-                        console.log("no match yet")
+                        // console.log("no match yet")
                         if(txt == ""){
                            $(".message").html("");
                         }

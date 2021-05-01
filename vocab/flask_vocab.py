@@ -89,7 +89,6 @@ def check():
     app.logger.debug("Entering check")
 
     # The data we need, from form and from cookie
-    # text = flask.request.form["attempt"]
     text = request.args.get("text", type=str)
     jumble = flask.session["jumble"]
     matches = flask.session.get("matches", [])  # Default to empty list
@@ -111,30 +110,14 @@ def check():
         # if target number reached, can return extra flag
     elif text in matches:
         return flask.jsonify(feedback=f"You already found {text}", status=0)
-        flask.flash("You already found {}".format(text))
     elif not matched:
         return flask.jsonify(feedback=f"{text} isn't in the list of words", status=0)
-        flask.flash("{} isn't in the list of words".format(text))
     elif not in_jumble:
         return flask.jsonify(feedback=f"'{text}' can\'t be made from the letters {jumble}", status=0)
-        flask.flash(
-            '"{}" can\'t be made from the letters {}'.format(text, jumble))
     # otherwise, this is an error
     app.logger.debug("This case shouldn't happen!")
     # return a JSON error instead of asserting false
     return flask.jsonify(feedback="something went wrong")
-    assert False  # Raises AssertionError
-
-    # New LM code
-    result = {matched: matched}
-    # return flask.jsonify(result=result)
-
-    # Choose page:  Solved enough, or keep going?
-    # TODO: should be moved to vocab.html? Answer: yes
-    if len(matches) >= flask.session["target_count"]:
-        return flask.redirect(flask.url_for("success"))
-    else:
-        return flask.redirect(flask.url_for("keep_going"))
 
 
 ###############
