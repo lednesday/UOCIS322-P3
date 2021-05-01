@@ -65,7 +65,7 @@
          </div>
          <div class="row">
             <div class="col-xs-6 text-center">
-               to spell {{session.target_count}} words from the list.
+               <p class="remaining">to spell {{session.target_count}} words from the list.</p>
             </div>
             <!-- col -->
          </div>
@@ -73,31 +73,66 @@
          <br />
          <div class="row">
             <div class="col-xs-6 text-center">
-               <form id="entry" method="POST" action="/_check">
+               <form id="entry">
                   <label for="attempt">Word:</label>
                   <input id="attempt" name="attempt" type="text" width="15"
                      autocomplete="off"  autofocus />
-                  <input type="submit" name="try" />
+                  <!-- <input type="submit" name="try" /> -->
                </form>
             </div>
          </div>
          <br />
-         {% if session.matches|length is not equalto 0  %}
+         <!-- TODO: hide if session.matches|length is not equalto 0 -->
          <h2>You found </h2>
-         <p id="results">
-            {% for match in session.matches %}
-            {{ match }}
-            {% endfor %}
-         </p>
-         {% endif %}
-         {% with messages = get_flashed_messages() %}
-         {% if messages %}
-         <!-- Mismatch, already found, etc. "flashed" from Python -->
-         {% for message in messages %}
-         <p class="message">{{ message }}</p>
-         {% endfor %}
-         {% endif %}
-         {% endwith %}
+         <p id="results"></p>
+         <p class="message"></p>
+
+         <script>
+            // Suppress normal form submission
+            $("#entry").submit( function(event) {
+               event.preventDefault();
+              });
+
+            $("#attempt").keyup(function(event) {
+            var txt = $("#attempt").val();  // Current content of the input field
+            console.log("txt:", txt);
+            //var keycode = event.which;      // They key that just went up
+            //var letter = String.fromCharCode(keycode); 
+
+               $.getJSON( "/_check", { text: txt },
+                  function(data) {
+                     // if status is 1, a new match was found; otherwise it's 0
+                     if(data.status == 1){ // it's a new match
+                        console.log("found new match");
+                        $("#results").append(txt + '\t');
+                        $("#attempt").val("");
+                        $(".message").html("");
+                        if(data.remaining == 1){
+                           word = " word ";
+                        }
+                        else{
+                           word = " words ";
+                        }
+                        var remaining_string = "to spell " + data.remaining + word + "from the list.";
+                        $(".remaining").html(remaining_string);
+                        if(data.found_all){
+                           // delay doesn't seem to work
+                           window.location.replace("/success").delay(5000);
+                        }
+                     }
+                     else{ // show message from lack of success
+                        console.log("no match yet")
+                        if(("#attempt").val == ("")){
+                           $(".message").html("");
+                        }
+                        else{
+                           $(".message").html(data.feedback);
+                        }
+                     }
+                  }
+               );
+            });  
+         </script>
       </div>
       <!-- container -->
    </body>

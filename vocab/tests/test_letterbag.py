@@ -45,3 +45,10 @@ def test_simple_merge():
     bag_abccd = LetterBag("abccd")
     bag_abbc.merge(bag_abccd)
     assert bag_abbc.as_string() == "abbccd"
+    # more test cases:
+    # merge empty string
+    bag_empty = LetterBag("")
+    bag_abbc.merge(bag_empty)
+    assert bag_abbc.as_string() == "abbccd"
+    bag_empty.merge(bag_abbc)
+    assert bag_empty.as_string() == "abbccd"

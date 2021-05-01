@@ -5,6 +5,7 @@ from a scrambled string)
 """
 
 import flask
+from flask import request  # added for AJAX
 import logging
 
 # Our modules
@@ -74,7 +75,8 @@ def success():
 #   a JSON request handler
 #######################
 
-@app.route("/_check", methods=["POST"])
+# @app.route("/_check", methods=["POST"])
+@app.route("/_check")
 def check():
     """
     User has submitted the form with a word ('attempt')
@@ -87,7 +89,8 @@ def check():
     app.logger.debug("Entering check")
 
     # The data we need, from form and from cookie
-    text = flask.request.form["attempt"]
+    # text = flask.request.form["attempt"]
+    text = request.args.get("text", type=str)
     jumble = flask.session["jumble"]
     matches = flask.session.get("matches", [])  # Default to empty list
 
@@ -100,22 +103,38 @@ def check():
         # Cool, they found a new word
         matches.append(text)
         flask.session["matches"] = matches
+        found_all = False
+        if len(matches) >= flask.session["target_count"]:
+            found_all = True
+        remaining = flask.session["target_count"] - len(matches)
+        return flask.jsonify(found_all=found_all, new_match=True, status=1, remaining=remaining)
+        # if target number reached, can return extra flag
     elif text in matches:
+        return flask.jsonify(feedback=f"You already found {text}", status=0)
         flask.flash("You already found {}".format(text))
     elif not matched:
+        return flask.jsonify(feedback=f"{text} isn't in the list of words", status=0)
         flask.flash("{} isn't in the list of words".format(text))
     elif not in_jumble:
+        return flask.jsonify(feedback=f"'{text}' can\'t be made from the letters {jumble}", status=0)
         flask.flash(
             '"{}" can\'t be made from the letters {}'.format(text, jumble))
-    else:
-        app.logger.debug("This case shouldn't happen!")
-        assert False  # Raises AssertionError
+    # otherwise, this is an error
+    app.logger.debug("This case shouldn't happen!")
+    # return a JSON error instead of asserting false
+    return flask.jsonify(feedback="something went wrong")
+    assert False  # Raises AssertionError
+
+    # New LM code
+    result = {matched: matched}
+    # return flask.jsonify(result=result)
 
     # Choose page:  Solved enough, or keep going?
+    # TODO: should be moved to vocab.html? Answer: yes
     if len(matches) >= flask.session["target_count"]:
-       return flask.redirect(flask.url_for("success"))
+        return flask.redirect(flask.url_for("success"))
     else:
-       return flask.redirect(flask.url_for("keep_going"))
+        return flask.redirect(flask.url_for("keep_going"))
 
 
 ###############
